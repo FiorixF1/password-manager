@@ -6,7 +6,7 @@ This program is written in Java and it is accessible through an interactive comm
 
 ![image info](example.png)
 
-The application is packed in a JAR file and you can directly run it by typing ```java -jar "Password Manager.jar"```.
+The application is packed in a JAR file and you can directly run it by executing ```PassManCLI.sh``` or ```PassManCLI.bat```. Currently I am working on a graphic user interface in order to add other features easily. You can use it through ```PassManGUI.sh``` or ```PassManGUI.bat```.
 
 Advice and contributions are always welcome!
 

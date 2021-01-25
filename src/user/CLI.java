@@ -17,7 +17,7 @@ public class CLI {
 	private static Map<KeyType, String[]> keysMetadata;
 	private static KeyType[] types;
 	
-	public static void main(String[] args) {
+	public static void exec() {
 		if (ui.isPasswordSet()) {
 			askPassword();
 		} else {

@@ -8,7 +8,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -29,6 +31,7 @@ public class KeyManager implements UserInterface {
 	private static KeyManager instance = null;
 	private static final String MASTERKEY_FILE = "masterkey.dat";
 	private static final String KEYS_FILE = "keys.dat";
+	private static final String BACKUP_FILE = "backup.dat";
 	
 	private byte[] initVector;
 	private String salt;
@@ -219,24 +222,36 @@ public class KeyManager implements UserInterface {
 	// deserialize keys from disk
 	private boolean loadKeys() {
 		try {
-			String encrypted = new String(Files.readAllBytes(Paths.get(KEYS_FILE)), StandardCharsets.UTF_8);
+			File backup = new File(BACKUP_FILE);
+			Path path = backup.isFile() ? Paths.get(BACKUP_FILE) : Paths.get(KEYS_FILE);
+			
+			String encrypted = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 			keys = crypto.decrypt(masterKey, initVector, encrypted);
 			return true;
-		} catch (IOException | InvalidKeyException | BadPaddingException | NoSuchPaddingException | NoSuchAlgorithmException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+		} catch (IOException e) {
+			// in this case, the decryption key is correct but there are no keys on disk: return true
+			e.printStackTrace();
+			return true;
+		} catch (InvalidKeyException | BadPaddingException | NoSuchPaddingException | NoSuchAlgorithmException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
 			e.printStackTrace();
 			return false;
 		}
 	}
 	
 	// serialize keys to disk
-	// TODO: dovrebbe usare un file temporaneo e servirebbe un sistema di backup in caso di interruzioni moleste del programma
 	private void saveKeys() {
 		try {
+			if (new File(KEYS_FILE).isFile()) {
+				Files.copy(Paths.get(KEYS_FILE), Paths.get(BACKUP_FILE), StandardCopyOption.REPLACE_EXISTING);
+			}
+			
 			String encrypted = crypto.encrypt(masterKey, initVector, keys);
 			File file = new File(KEYS_FILE);
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 			bw.write(encrypted);
 			bw.close();
+			
+			Files.deleteIfExists(Paths.get(BACKUP_FILE));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
