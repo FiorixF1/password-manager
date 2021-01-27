@@ -1,1 +1,0 @@
-java -jar "Password Manager.jar"
