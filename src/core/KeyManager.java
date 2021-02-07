@@ -149,7 +149,7 @@ public class KeyManager implements UserInterface {
 		}
 	}
 	
-	public Map<KeyType, String[]> getKeysMetadata() {
+	public Map<KeyType, AbstractKey> getKeysMetadata() {
 		return keyFactory.getKeysMetadata();
 	}
 

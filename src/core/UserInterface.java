@@ -15,7 +15,7 @@ public interface UserInterface {
 	public boolean updateMasterKey(String oldPassword, String newPassword);
 	public boolean deleteMasterKey();
 	
-	public Map<KeyType, String[]> getKeysMetadata();
+	public Map<KeyType, AbstractKey> getKeysMetadata();
 	public List<AbstractKey> getKeys();
 	public AbstractKey getKeyById(int id);
 	public List<AbstractKey> getKeysByDescription(String query);

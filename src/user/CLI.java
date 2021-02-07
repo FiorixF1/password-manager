@@ -14,7 +14,7 @@ public class CLI {
 	private static Scanner cin = new Scanner(System.in);
 	private static UserInterface ui = KeyManager.getInstance();
 	
-	private static Map<KeyType, String[]> keysMetadata;
+	private static Map<KeyType, AbstractKey> keysMetadata;
 	private static KeyType[] types;
 	
 	public static void exec() {
@@ -172,7 +172,7 @@ public class CLI {
 		String description = cin.nextLine();
 		
 		KeyType type = types[option-1];
-		String[] requestedInput = keysMetadata.get(type);
+		String[] requestedInput = keysMetadata.get(type).getAllowedProperties();
 		Map<String, String> props = new HashMap<String, String>();
 		for (String prop : requestedInput) {
 			System.out.print(prop + ": ");
@@ -216,7 +216,7 @@ public class CLI {
 				String description = cin.nextLine();
 				
 				KeyType type = result.getType();
-				String[] requestedInput = keysMetadata.get(type);
+				String[] requestedInput = keysMetadata.get(type).getAllowedProperties();
 				Map<String, String> props = new HashMap<String, String>();
 				for (String prop : requestedInput) {
 					System.out.print(prop + ": ");

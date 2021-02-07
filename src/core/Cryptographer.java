@@ -28,8 +28,8 @@ import key.AbstractKey;
 
 public class Cryptographer {
 	private static final int KEY_LENGTH = 16;
-	private static final boolean INPUT_NOT_ENCRYPTED = false;
-	private static final boolean OUTPUT_NOT_ENCRYPTED = false;
+	private static final boolean INPUT_NOT_ENCRYPTED = false;    // set to "true" for debugging
+	private static final boolean OUTPUT_NOT_ENCRYPTED = false;   // set to "true" for debugging
 	
 	private Parser parser;
 	

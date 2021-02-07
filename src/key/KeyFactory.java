@@ -9,8 +9,14 @@ public class KeyFactory {
 		AbstractKey key = null;
 		
 		switch (type) {
-		case CARD:
-			key = new Card(props);
+		case ACCESS_CODE:
+			key = new AccessCode(props);
+			break;
+		case ADDRESS:
+			key = new Address(props);
+			break;
+		case BANK_ACCOUNT:
+			key = new BankAccount(props);
 			break;
 		case CRYPTO_WALLET:
 			key = new CryptoWallet(props);
@@ -18,14 +24,11 @@ public class KeyFactory {
 		case FISCAL_CODE:
 			key = new FiscalCode(props);
 			break;
-		case ADDRESS:
-			key = new Address(props);
+		case LOGIN_CREDENTIALS:
+			key = new LoginCredentials(props);
 			break;
-		case ACCESS_CODE:
-			key = new AccessCode(props);
-			break;
-		case CREDENTIALS:
-			key = new Credentials(props);
+		case PAYMENT_CARD:
+			key = new PaymentCard(props);
 			break;
 		default:
 			key = null;
@@ -37,15 +40,16 @@ public class KeyFactory {
 		return key;
 	}
 	
-	public Map<KeyType, String[]> getKeysMetadata() {
-		Map<KeyType, String[]> result = new HashMap<KeyType, String[]>();
+	public Map<KeyType, AbstractKey> getKeysMetadata() {
+		Map<KeyType, AbstractKey> result = new HashMap<KeyType, AbstractKey>();
 		
-		result.put(KeyType.CARD, new Card(null).getAllowedProperties());
-		result.put(KeyType.CRYPTO_WALLET, new CryptoWallet(null).getAllowedProperties());
-		result.put(KeyType.FISCAL_CODE, new FiscalCode(null).getAllowedProperties());
-		result.put(KeyType.ADDRESS, new Address(null).getAllowedProperties());
-		result.put(KeyType.ACCESS_CODE, new AccessCode(null).getAllowedProperties());
-		result.put(KeyType.CREDENTIALS, new Credentials(null).getAllowedProperties());
+		result.put(KeyType.ACCESS_CODE, new AccessCode(null));
+		result.put(KeyType.ADDRESS, new Address(null));
+		result.put(KeyType.BANK_ACCOUNT, new BankAccount(null));
+		result.put(KeyType.CRYPTO_WALLET, new CryptoWallet(null));
+		result.put(KeyType.FISCAL_CODE, new FiscalCode(null));
+		result.put(KeyType.LOGIN_CREDENTIALS, new LoginCredentials(null));
+		result.put(KeyType.PAYMENT_CARD, new PaymentCard(null));
 		
 		return result;
 	}

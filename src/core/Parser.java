@@ -33,7 +33,7 @@ public class Parser {
         	
         	List<AbstractKey> result = new ArrayList<AbstractKey>();
         	while (index < lines.length) {
-        		// lines[index] just contains "START"
+        		// lines[index] just contains STARTING_TAG
         		KeyType type = KeyType.valueOf(lines[index+1]);
         		int id = Integer.parseInt(lines[index+2]);
         		LocalDate created = LocalDate.parse(lines[index+3]);
@@ -41,7 +41,7 @@ public class Parser {
         		String description = lines[index+5];
 
         		Map<String, String> props = new HashMap<String, String>();
-        		for (int i = index+6; !lines[i].equals("END"); i += 2) {
+        		for (int i = index+6; !lines[i].equals(AbstractKey.ENDING_TAG); i += 2) {
     				props.put(lines[i], lines[i+1]);
     			}
         		
@@ -50,6 +50,7 @@ public class Parser {
         		key.setModified(modified);
         		result.add(key);
         		
+        		// be careful with this :)
         		index += 5 + props.keySet().size()*2 + 2;
         	}
         	

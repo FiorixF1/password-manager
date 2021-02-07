@@ -11,10 +11,21 @@ public abstract class AbstractKey {
 	private LocalDate modified;
 	private Map<String, String> properties;
 	
+	public static final String NOT_AVAILABLE = "N/A";
+	public static final String STARTING_TAG = "START";
+	public static final String ENDING_TAG = "END";
+	
+	// these are implemented in ProxyKey, the link between AbstractKey and the derived classes
 	public abstract KeyType getType();
 	public abstract String[] getAllowedProperties();
+	public abstract String[] getReservedProperties();
+	
+	// implement this in derived classes by setting properties
+	public abstract void createProperties();
 	
 	AbstractKey(Map<String, String> props) {
+		createProperties();
+		
 		created = modified = LocalDate.now();
 		properties = new HashMap<String, String>();
 		if (props == null) return;
@@ -23,7 +34,7 @@ public abstract class AbstractKey {
 			if (value != null && value.length() > 0) {
 				properties.put(key, value);
 			} else {
-				properties.put(key, "[n.a.]");
+				properties.put(key, NOT_AVAILABLE);
 			}
 		}
 	}
@@ -43,6 +54,15 @@ public abstract class AbstractKey {
 		for (String key : props.keySet()) {
 			setProperty(key, props.get(key));
 		}
+	}
+	
+	public boolean isReserved(String key) {
+		for (String prop : getReservedProperties()) {
+			if (prop.equals(key)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private boolean checkProperty(String key) {
@@ -96,7 +116,7 @@ public abstract class AbstractKey {
 	
 	public String toString() {
 		StringBuilder output = new StringBuilder();
-		output.append("START"              + "\n" +  
+		output.append(STARTING_TAG         + "\n" +  
 		              getType().name()     + "\n" +
 		              getId()              + "\n" +
 		              getCreated()         + "\n" +
@@ -108,7 +128,7 @@ public abstract class AbstractKey {
 			output.append(properties.get(key) + "\n");
 		}
 		
-		output.append("END");
+		output.append(ENDING_TAG);
 		return output.toString();
 	}
 }

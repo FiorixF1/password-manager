@@ -3,10 +3,11 @@ package key;
 public enum KeyType {
 	ACCESS_CODE,
 	ADDRESS,
-	CARD,
-	CREDENTIALS,
+	BANK_ACCOUNT,
 	CRYPTO_WALLET,
-	FISCAL_CODE;
+	FISCAL_CODE,
+	LOGIN_CREDENTIALS,
+	PAYMENT_CARD;
 	
 	@Override
 	public String toString() {

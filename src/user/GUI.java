@@ -22,7 +22,9 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.SpringLayout;
@@ -33,6 +35,8 @@ import javax.swing.event.ListSelectionListener;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -40,7 +44,7 @@ import javax.swing.JList;
 
 public class GUI {
 	private UserInterface ui;
-	private Map<KeyType, String[]> keysMetadata;
+	private Map<KeyType, AbstractKey> keysMetadata;
 	private KeyType[] types;
 
 	private JFrame frame;
@@ -143,7 +147,7 @@ public class GUI {
 		setPassword();
 	}
 	
-	public void setPassword() {;
+	public void setPassword() {
 		JPanel panel = new JPanel();
 		panel.setPreferredSize(new Dimension(400, 70));
 		
@@ -277,10 +281,10 @@ public class GUI {
 		});
 		
 		list.addMouseListener(new MouseAdapter() {
-		    public void mouseClicked(MouseEvent evt) {
-		        JList<String> list = (JList<String>)evt.getSource();
-		        if (evt.getClickCount() == 2) {
-		        	int index = list.locationToIndex(evt.getPoint());
+		    public void mouseClicked(MouseEvent e) {
+		        JList<String> list = (JList<String>)e.getSource();
+		        if (e.getClickCount() == 2) {
+		        	int index = list.locationToIndex(e.getPoint());
 	            	String description = searchBar.getText();
 	            	AbstractKey key = ui.getKeysByDescription(description).get(index);
 	            	
@@ -537,8 +541,7 @@ public class GUI {
 	}
 	
 	private JPanel createPanel(AbstractKey key) {
-		KeyType type = key.getType();
-		String[] props = keysMetadata.get(type);
+		String[] props = key.getAllowedProperties();
 
 		JPanel panel = new JPanel();
 		panel.setPreferredSize(new Dimension(400, 32*(props.length+3)));
@@ -559,53 +562,83 @@ public class GUI {
 		panel.add(mainText);
 		
 		JLabel previousLabel = mainLabel;
-		JTextField previousText = mainText;
 		for (String prop : props) {
 			JLabel label = new JLabel(prop + ":");
 			springLayout.putConstraint(SpringLayout.NORTH, label, 16, SpringLayout.SOUTH, previousLabel);
-			springLayout.putConstraint(SpringLayout.WEST, label, 0, SpringLayout.WEST, previousLabel);
+			springLayout.putConstraint(SpringLayout.WEST, label, 0, SpringLayout.WEST, mainLabel);
 			panel.add(label);
 			
-			JTextField text = new JTextField(key.getProperty(prop));
-			text.setName(prop);
-			springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
-			springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, previousText);
-			springLayout.putConstraint(SpringLayout.EAST, text, 0, SpringLayout.EAST, previousText);
-			panel.add(text);
+			JTextField text;
+			if (key.isReserved(prop)) {
+				text = new JPasswordField(key.getProperty(prop));
+				text.setName(prop);
+				springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
+				springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, mainText);
+				springLayout.putConstraint(SpringLayout.EAST, text, -40, SpringLayout.EAST, mainText);
+				panel.add(text);
+				
+				char Default = ((JPasswordField)text).getEchoChar();
+				
+				ImageIcon icon = new ImageIcon("images/eye_icon.png");
+				JToggleButton showButton = new JToggleButton(icon);
+				springLayout.putConstraint(SpringLayout.NORTH, showButton, 0, SpringLayout.NORTH, label);
+				springLayout.putConstraint(SpringLayout.WEST, showButton, -32, SpringLayout.EAST, mainText);
+				springLayout.putConstraint(SpringLayout.EAST, showButton, 0, SpringLayout.EAST, mainText);
+				springLayout.putConstraint(SpringLayout.SOUTH, showButton, 0, SpringLayout.SOUTH, text);
+				panel.add(showButton);
+				
+				showButton.addItemListener(new ItemListener() {
+					public void itemStateChanged(ItemEvent e) {  
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+			                ((JPasswordField)text).setEchoChar((char) 0);
+			            } else {
+			                ((JPasswordField)text).setEchoChar(Default);
+			            } 
+					}  
+		        });
+			} else {
+				text = new JTextField(key.getProperty(prop));
+				text.setName(prop);
+				springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
+				springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, mainText);
+				springLayout.putConstraint(SpringLayout.EAST, text, 0, SpringLayout.EAST, mainText);
+				panel.add(text);
+			}
 			
 			previousLabel = label;
-			previousText = text;
 		}
 		
 		JLabel createdLabel = new JLabel("Created:");
 		springLayout.putConstraint(SpringLayout.NORTH, createdLabel, 16, SpringLayout.SOUTH, previousLabel);
-		springLayout.putConstraint(SpringLayout.WEST, createdLabel, 0, SpringLayout.WEST, previousLabel);
+		springLayout.putConstraint(SpringLayout.WEST, createdLabel, 0, SpringLayout.WEST, mainLabel);
 		panel.add(createdLabel);
 			
 		JTextField createdText = new JTextField(key.getCreated().toString());
 		createdText.setEditable(false);
 		springLayout.putConstraint(SpringLayout.NORTH, createdText, 0, SpringLayout.NORTH, createdLabel);
-		springLayout.putConstraint(SpringLayout.WEST, createdText, 0, SpringLayout.WEST, previousText);
-		springLayout.putConstraint(SpringLayout.EAST, createdText, 0, SpringLayout.EAST, previousText);
+		springLayout.putConstraint(SpringLayout.WEST, createdText, 0, SpringLayout.WEST, mainText);
+		springLayout.putConstraint(SpringLayout.EAST, createdText, 0, SpringLayout.EAST, mainText);
 		panel.add(createdText);
 			
 		JLabel modifiedLabel = new JLabel("Last modified:");
 		springLayout.putConstraint(SpringLayout.NORTH, modifiedLabel, 16, SpringLayout.SOUTH, createdLabel);
-		springLayout.putConstraint(SpringLayout.WEST, modifiedLabel, 0, SpringLayout.WEST, createdLabel);
+		springLayout.putConstraint(SpringLayout.WEST, modifiedLabel, 0, SpringLayout.WEST, mainLabel);
 		panel.add(modifiedLabel);
 			
 		JTextField modifiedText = new JTextField(key.getModified().toString());
 		modifiedText.setEditable(false);
 		springLayout.putConstraint(SpringLayout.NORTH, modifiedText, 0, SpringLayout.NORTH, modifiedLabel);
-		springLayout.putConstraint(SpringLayout.WEST, modifiedText, 0, SpringLayout.WEST, createdText);
-		springLayout.putConstraint(SpringLayout.EAST, modifiedText, 0, SpringLayout.EAST, createdText);
+		springLayout.putConstraint(SpringLayout.WEST, modifiedText, 0, SpringLayout.WEST, mainText);
+		springLayout.putConstraint(SpringLayout.EAST, modifiedText, 0, SpringLayout.EAST, mainText);
 		panel.add(modifiedText);
 		
 		return panel;
 	}
 	
+	// TODO: find a way to avoid overloading this method
 	public JPanel createPanel(KeyType type) {
-		String[] props = keysMetadata.get(type);
+		AbstractKey key = keysMetadata.get(type);
+		String[] props = key.getAllowedProperties();
 
 		JPanel panel = new JPanel();
 		panel.setPreferredSize(new Dimension(400, 32*(props.length+1)));
@@ -626,22 +659,50 @@ public class GUI {
 		panel.add(mainText);
 
 		JLabel previousLabel = mainLabel;
-		JTextField previousText = mainText;
 		for (String prop : props) {
 			JLabel label = new JLabel(prop + ":");
 			springLayout.putConstraint(SpringLayout.NORTH, label, 16, SpringLayout.SOUTH, previousLabel);
 			springLayout.putConstraint(SpringLayout.WEST, label, 0, SpringLayout.WEST, previousLabel);
 			panel.add(label);
 
-			JTextField text = new JTextField();
-			text.setName(prop);
-			springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
-			springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, previousText);
-			springLayout.putConstraint(SpringLayout.EAST, text, 0, SpringLayout.EAST, previousText);
-			panel.add(text);
-
+			JTextField text;
+			if (key.isReserved(prop)) {
+				text = new JPasswordField(key.getProperty(prop));
+				text.setName(prop);
+				springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
+				springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, mainText);
+				springLayout.putConstraint(SpringLayout.EAST, text, -40, SpringLayout.EAST, mainText);
+				panel.add(text);
+				
+				char Default = ((JPasswordField)text).getEchoChar();
+				
+				ImageIcon icon = new ImageIcon("images/eye_icon.png");
+				JToggleButton showButton = new JToggleButton(icon);
+				springLayout.putConstraint(SpringLayout.NORTH, showButton, 0, SpringLayout.NORTH, label);
+				springLayout.putConstraint(SpringLayout.WEST, showButton, -32, SpringLayout.EAST, mainText);
+				springLayout.putConstraint(SpringLayout.EAST, showButton, 0, SpringLayout.EAST, mainText);
+				springLayout.putConstraint(SpringLayout.SOUTH, showButton, 0, SpringLayout.SOUTH, text);
+				panel.add(showButton);
+				
+				showButton.addItemListener(new ItemListener() {
+					public void itemStateChanged(ItemEvent e) {  
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+			                ((JPasswordField)text).setEchoChar((char) 0);
+			            } else {
+			                ((JPasswordField)text).setEchoChar(Default);
+			            } 
+					}  
+		        });
+			} else {
+				text = new JTextField(key.getProperty(prop));
+				text.setName(prop);
+				springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
+				springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, mainText);
+				springLayout.putConstraint(SpringLayout.EAST, text, 0, SpringLayout.EAST, mainText);
+				panel.add(text);
+			}
+			
 			previousLabel = label;
-			previousText = text;
 		}
 		
 		return panel;
