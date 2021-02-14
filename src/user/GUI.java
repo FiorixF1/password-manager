@@ -51,7 +51,6 @@ public class GUI {
 	private SpringLayout springLayout;
 	private JTextField searchBar;
 	private JButton insertButton;
-	private JButton updateButton;
 	private JButton deleteButton;
 	private JButton editPasswordButton;
 	private JList<String> list;
@@ -229,22 +228,18 @@ public class GUI {
 		springLayout.putConstraint(SpringLayout.EAST, searchBar, -24, SpringLayout.EAST, frame.getContentPane());
 		frame.getContentPane().add(searchBar);
 		
-		insertButton = new JButton("Insert");
+		ImageIcon insertIcon = new ImageIcon("images/plus_icon.png");
+		insertButton = new JButton(insertIcon);
 		springLayout.putConstraint(SpringLayout.NORTH, insertButton, 24, SpringLayout.SOUTH, searchBar);
 		springLayout.putConstraint(SpringLayout.WEST, insertButton, -192, SpringLayout.EAST, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.EAST, insertButton, -24, SpringLayout.EAST, frame.getContentPane());
 		frame.getContentPane().add(insertButton);
 		
-		updateButton = new JButton("Update");
-		springLayout.putConstraint(SpringLayout.NORTH, updateButton, 24, SpringLayout.SOUTH, insertButton);
-		springLayout.putConstraint(SpringLayout.WEST, updateButton, 0, SpringLayout.WEST, insertButton);
-		springLayout.putConstraint(SpringLayout.EAST, updateButton, 0, SpringLayout.EAST, insertButton);
-		frame.getContentPane().add(updateButton);
-		
-		deleteButton = new JButton("Delete");
-		springLayout.putConstraint(SpringLayout.NORTH, deleteButton, 24, SpringLayout.SOUTH, updateButton);
-		springLayout.putConstraint(SpringLayout.WEST, deleteButton, 0, SpringLayout.WEST, updateButton);
-		springLayout.putConstraint(SpringLayout.EAST, deleteButton, 0, SpringLayout.EAST, updateButton);
+		ImageIcon deleteIcon = new ImageIcon("images/minus_icon.png");
+		deleteButton = new JButton(deleteIcon);
+		springLayout.putConstraint(SpringLayout.NORTH, deleteButton, 24, SpringLayout.SOUTH, insertButton);
+		springLayout.putConstraint(SpringLayout.WEST, deleteButton, 0, SpringLayout.WEST, insertButton);
+		springLayout.putConstraint(SpringLayout.EAST, deleteButton, 0, SpringLayout.EAST, insertButton);
 		frame.getContentPane().add(deleteButton);
 		
 		editPasswordButton = new JButton("Edit password");
@@ -254,7 +249,6 @@ public class GUI {
 		frame.getContentPane().add(editPasswordButton);
 
 		insertButton.setEnabled(true);
-		updateButton.setEnabled(false);
 		deleteButton.setEnabled(false);
 		editPasswordButton.setEnabled(true);
 
@@ -275,7 +269,6 @@ public class GUI {
 		
 		list.addListSelectionListener(new ListSelectionListener() {
 		    public void valueChanged(ListSelectionEvent e) {
-		    	updateButton.setEnabled(true);
 				deleteButton.setEnabled(true);
 		    }
 		});
@@ -316,20 +309,6 @@ public class GUI {
 		insertButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (insertKey()) {
-                	updateDlm();
-                }
-            }
-        });
-		
-		// probably I will remove this
-		updateButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	// same handler of double click on list
-            	int index = list.getSelectedIndex();
-            	String description = searchBar.getText();
-            	AbstractKey key = ui.getKeysByDescription(description).get(index);
-            	
-                if (updateKey(key)) {
                 	updateDlm();
                 }
             }
@@ -377,7 +356,7 @@ public class GUI {
 		
 		if (typeCxl == JOptionPane.OK_OPTION) {
 			KeyType type = combo.getItemAt(combo.getSelectedIndex());
-			JPanel panel = createPanel(type);
+			JPanel panel = createPanel(keysMetadata.get(type), false);
 			int okCxl = JOptionPane.showConfirmDialog(null,
 				panel,
 				"Password Manager",
@@ -409,7 +388,7 @@ public class GUI {
 	}
 	
 	public boolean updateKey(AbstractKey key) {
-		JPanel panel = createPanel(key);
+		JPanel panel = createPanel(key, true);
 		int okCxl = JOptionPane.showConfirmDialog(null,
 			panel,
 			"Password Manager",
@@ -540,11 +519,12 @@ public class GUI {
 		}
 	}
 	
-	private JPanel createPanel(AbstractKey key) {
+	private JPanel createPanel(AbstractKey key, boolean update) {
+		int multiplier = update ? 1 : 0;
 		String[] props = key.getAllowedProperties();
 
 		JPanel panel = new JPanel();
-		panel.setPreferredSize(new Dimension(400, 32*(props.length+3)));
+		panel.setPreferredSize(new Dimension(400, 32*(props.length+1+2*multiplier)));
 		
 		SpringLayout springLayout = new SpringLayout();
 		panel.setLayout(springLayout);
@@ -608,106 +588,35 @@ public class GUI {
 			previousLabel = label;
 		}
 		
-		JLabel createdLabel = new JLabel("Created:");
-		springLayout.putConstraint(SpringLayout.NORTH, createdLabel, 16, SpringLayout.SOUTH, previousLabel);
-		springLayout.putConstraint(SpringLayout.WEST, createdLabel, 0, SpringLayout.WEST, mainLabel);
-		panel.add(createdLabel);
-			
-		JTextField createdText = new JTextField(key.getCreated().toString());
-		createdText.setEditable(false);
-		springLayout.putConstraint(SpringLayout.NORTH, createdText, 0, SpringLayout.NORTH, createdLabel);
-		springLayout.putConstraint(SpringLayout.WEST, createdText, 0, SpringLayout.WEST, mainText);
-		springLayout.putConstraint(SpringLayout.EAST, createdText, 0, SpringLayout.EAST, mainText);
-		panel.add(createdText);
-			
-		JLabel modifiedLabel = new JLabel("Last modified:");
-		springLayout.putConstraint(SpringLayout.NORTH, modifiedLabel, 16, SpringLayout.SOUTH, createdLabel);
-		springLayout.putConstraint(SpringLayout.WEST, modifiedLabel, 0, SpringLayout.WEST, mainLabel);
-		panel.add(modifiedLabel);
-			
-		JTextField modifiedText = new JTextField(key.getModified().toString());
-		modifiedText.setEditable(false);
-		springLayout.putConstraint(SpringLayout.NORTH, modifiedText, 0, SpringLayout.NORTH, modifiedLabel);
-		springLayout.putConstraint(SpringLayout.WEST, modifiedText, 0, SpringLayout.WEST, mainText);
-		springLayout.putConstraint(SpringLayout.EAST, modifiedText, 0, SpringLayout.EAST, mainText);
-		panel.add(modifiedText);
-		
-		return panel;
-	}
-	
-	// TODO: find a way to avoid overloading this method
-	public JPanel createPanel(KeyType type) {
-		AbstractKey key = keysMetadata.get(type);
-		String[] props = key.getAllowedProperties();
-
-		JPanel panel = new JPanel();
-		panel.setPreferredSize(new Dimension(400, 32*(props.length+1)));
-		
-		SpringLayout springLayout = new SpringLayout();
-		panel.setLayout(springLayout);
-		
-		JLabel mainLabel = new JLabel("Description:");
-		springLayout.putConstraint(SpringLayout.NORTH, mainLabel, 8, SpringLayout.NORTH, panel);
-		springLayout.putConstraint(SpringLayout.WEST, mainLabel, 8, SpringLayout.WEST, panel);
-		panel.add(mainLabel);
-		
-		JTextField mainText = new JTextField();
-		mainText.setName("description");
-		springLayout.putConstraint(SpringLayout.NORTH, mainText, 0, SpringLayout.NORTH, mainLabel);
-		springLayout.putConstraint(SpringLayout.WEST, mainText, 200, SpringLayout.WEST, panel);
-		springLayout.putConstraint(SpringLayout.EAST, mainText, -8, SpringLayout.EAST, panel);
-		panel.add(mainText);
-
-		JLabel previousLabel = mainLabel;
-		for (String prop : props) {
-			JLabel label = new JLabel(prop + ":");
-			springLayout.putConstraint(SpringLayout.NORTH, label, 16, SpringLayout.SOUTH, previousLabel);
-			springLayout.putConstraint(SpringLayout.WEST, label, 0, SpringLayout.WEST, previousLabel);
-			panel.add(label);
-
-			JTextField text;
-			if (key.isReserved(prop)) {
-				text = new JPasswordField(key.getProperty(prop));
-				text.setName(prop);
-				springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
-				springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, mainText);
-				springLayout.putConstraint(SpringLayout.EAST, text, -40, SpringLayout.EAST, mainText);
-				panel.add(text);
+		if (update) {
+			JLabel createdLabel = new JLabel("Created:");
+			springLayout.putConstraint(SpringLayout.NORTH, createdLabel, 16, SpringLayout.SOUTH, previousLabel);
+			springLayout.putConstraint(SpringLayout.WEST, createdLabel, 0, SpringLayout.WEST, mainLabel);
+			panel.add(createdLabel);
 				
-				char Default = ((JPasswordField)text).getEchoChar();
+			JTextField createdText = new JTextField(key.getCreated().toString());
+			createdText.setEditable(false);
+			springLayout.putConstraint(SpringLayout.NORTH, createdText, 0, SpringLayout.NORTH, createdLabel);
+			springLayout.putConstraint(SpringLayout.WEST, createdText, 0, SpringLayout.WEST, mainText);
+			springLayout.putConstraint(SpringLayout.EAST, createdText, 0, SpringLayout.EAST, mainText);
+			panel.add(createdText);
 				
-				ImageIcon icon = new ImageIcon("images/eye_icon.png");
-				JToggleButton showButton = new JToggleButton(icon);
-				springLayout.putConstraint(SpringLayout.NORTH, showButton, 0, SpringLayout.NORTH, label);
-				springLayout.putConstraint(SpringLayout.WEST, showButton, -32, SpringLayout.EAST, mainText);
-				springLayout.putConstraint(SpringLayout.EAST, showButton, 0, SpringLayout.EAST, mainText);
-				springLayout.putConstraint(SpringLayout.SOUTH, showButton, 0, SpringLayout.SOUTH, text);
-				panel.add(showButton);
+			JLabel modifiedLabel = new JLabel("Last modified:");
+			springLayout.putConstraint(SpringLayout.NORTH, modifiedLabel, 16, SpringLayout.SOUTH, createdLabel);
+			springLayout.putConstraint(SpringLayout.WEST, modifiedLabel, 0, SpringLayout.WEST, mainLabel);
+			panel.add(modifiedLabel);
 				
-				showButton.addItemListener(new ItemListener() {
-					public void itemStateChanged(ItemEvent e) {  
-						if (e.getStateChange() == ItemEvent.SELECTED) {
-			                ((JPasswordField)text).setEchoChar((char) 0);
-			            } else {
-			                ((JPasswordField)text).setEchoChar(Default);
-			            } 
-					}  
-		        });
-			} else {
-				text = new JTextField(key.getProperty(prop));
-				text.setName(prop);
-				springLayout.putConstraint(SpringLayout.NORTH, text, 0, SpringLayout.NORTH, label);
-				springLayout.putConstraint(SpringLayout.WEST, text, 0, SpringLayout.WEST, mainText);
-				springLayout.putConstraint(SpringLayout.EAST, text, 0, SpringLayout.EAST, mainText);
-				panel.add(text);
-			}
-			
-			previousLabel = label;
+			JTextField modifiedText = new JTextField(key.getModified().toString());
+			modifiedText.setEditable(false);
+			springLayout.putConstraint(SpringLayout.NORTH, modifiedText, 0, SpringLayout.NORTH, modifiedLabel);
+			springLayout.putConstraint(SpringLayout.WEST, modifiedText, 0, SpringLayout.WEST, mainText);
+			springLayout.putConstraint(SpringLayout.EAST, modifiedText, 0, SpringLayout.EAST, mainText);
+			panel.add(modifiedText);
 		}
 		
 		return panel;
 	}
-	
+
 	private void updateDlm() {
 		String query = searchBar.getText();
 		List<AbstractKey> result = ui.getKeysByDescription(query);
@@ -716,8 +625,7 @@ public class GUI {
 		for (AbstractKey key : result) {
 		    dlm.addElement(key.getDescription());
 		}
-		
-		updateButton.setEnabled(false);
+
 		deleteButton.setEnabled(false);
 	}
 }
